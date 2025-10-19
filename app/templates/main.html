@@ -51,7 +51,7 @@
         <div class="horizontal-scroll-container">
             <div class="horizontal-scroll" id="foldersScroll">
                 {% for folder in folders %}
-                    <a class="folder-card" target="_blank" href="http://127.0.0.1:8000/folder/folder_page/{{folder.id}}" style="background-color: {{ folder.color | safe }}; position: relative;">
+                    <a class="folder-card" target="_blank" href="{{ config.url }}/folder/folder_page/{{folder.id}}" style="background-color: {{ folder.color | safe }}; position: relative;">
                         {% if folder.password_check %}
                             <div class="lock-icon">🔒</div>
                         {% endif %}

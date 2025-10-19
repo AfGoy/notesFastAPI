@@ -8,6 +8,6 @@ class Config:
     DB_URL = os.getenv("DB_URL")
     SECRET_KEY = os.getenv("SECRET_KEY")
     ALGORITHM = os.getenv("ALGORITHM")
-    MINUTES = 1
+    MINUTES = 10
     REFRESH_TOKEN_DAYS = 7
-    TOKEN_MIN_EXEPT = 1
+    TOKEN_MIN_EXEPT = 2

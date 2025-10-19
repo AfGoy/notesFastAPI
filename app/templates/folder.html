@@ -41,6 +41,28 @@
         </div>
     </div>
 </div>
+
+<!-- Модальное окно для создания заметки -->
+<div id="noteModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Создать заметку</h2>
+        <form id="noteForm">
+            <label for="noteName">Название:</label>
+            <input type="text" id="noteName" name="name" required>
+
+            <label for="noteText">Текст:</label>
+            <textarea id="noteText" name="text" rows="5" required></textarea>
+
+            <label class="checkbox-public">
+                <input type="checkbox" id="notePublic" name="is_public">
+                <span>Публичная</span>
+            </label>
+
+            <button type="submit">Создать заметку</button>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}

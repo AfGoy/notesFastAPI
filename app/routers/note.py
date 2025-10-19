@@ -28,7 +28,7 @@ router = APIRouter()
 async def create_note(
     db: Annotated[Session, Depends(get_db)],
     note_data: NoteBase,
-    token: str = Depends(oauth2_scheme)
+    token: str = Depends(auth.get_token_from_cookie)
 ):
     try:
         if not auth.get_user_by_token(token=token):

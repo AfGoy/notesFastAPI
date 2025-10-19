@@ -27,6 +27,17 @@ bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/token')
 
 
+def get_token_from_cookie(
+    token: str = Cookie(alias="access_token", default=None)
+) -> str:
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Токен отсутствует в куках"
+        )
+    return token
+
+
 def create_access_token(username: str, user_id: int,
                               expires_delta: timedelta):
     payload = {
@@ -51,9 +62,13 @@ def create_refresh_token(username: str, user_id: int, expires_delta: timedelta):
 
 
 def get_user_by_token(token: str):
+    print(token)
     payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    print(2)
     user_id = payload.get("id")
+    print(3)
     username = payload.get("sub")
+
 
     if not user_id:
         raise HTTPException(
@@ -85,11 +100,8 @@ async def token_refresh_middleware(request: Request, call_next):
     if not access_token or not refresh_token:
         return response
 
-    print("start")
     try:
-        print("try1")
         payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
-        print("try2")
         exp_timestamp = payload.get("exp")
         exp_time = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
         remaining = exp_time - datetime.now(timezone.utc)
@@ -122,13 +134,10 @@ async def token_refresh_middleware(request: Request, call_next):
     except:
         try:
             refresh_payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-            print(refresh_payload)
             if refresh_payload.get("type") != "refresh":
                 return JSONResponse({"detail": "Неверный тип refresh токена"}, status_code=401)
-            print(1)
             username = refresh_payload.get("sub")
             user_id = refresh_payload.get("id")
-            print(2)
             # Генерируем новый access токен
             new_token_payload = {
                 "sub": username,
@@ -137,7 +146,6 @@ async def token_refresh_middleware(request: Request, call_next):
                 "exp": datetime.now(timezone.utc) + timedelta(minutes=Config.MINUTES)
             }
             new_access_token = jwt.encode(new_token_payload, SECRET_KEY, algorithm=ALGORITHM)
-            print(3)
             response.set_cookie(
                 key="access_token",
                 value=new_access_token,

@@ -30,35 +30,34 @@ templates = Jinja2Templates(directory='app/templates/')
 
 router = APIRouter()
 
-@router.post('/')
-async def create_folder(
+@router.post('/note/create')
+async def create_note(
     db: Annotated[Session, Depends(get_db)],
-    folder_data: FolderCreate,
-    token: str = Depends(oauth2_scheme)
+    note_data: NoteBase,  # { name, text, folder_id, is_public }
+    token: str = Depends(auth.get_token_from_cookie)
 ):
     try:
-        print(folder_data)
-        if not auth.get_user_by_token(token=token):
+        user = auth.get_user_by_token(token=token)
+        if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Пользователь не найден"   
+                detail="Пользователь не найден"
             )
 
-        folder = Folder(
-            owner_id=auth.get_user_by_token(token=token)["user_id"],
-            slug=f"folder_{randint(1, 1000)}",
-            name=folder_data.name,
-            color = folder_data.color,
-            is_public = folder_data.is_public,
-            password_check = folder_data.password_check,
-            hash_password = folder_data.password
+        note = Note(
+            owner_id=user["user_id"],
+            folder_id=note_data.folder_id,
+            slug=f"note_{randint(1, 1000)}",
+            text=note_data.text,
+            name=note_data.name,
+            is_public=note_data.is_public  # если поле есть в модели
         )
-        db.add(folder)
+        db.add(note)
         db.commit()
-        db.refresh(folder)
+        db.refresh(note)
 
-        return folder
-    
+        return note
+
     except Exception as e:
         db.rollback()
         raise HTTPException(

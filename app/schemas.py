@@ -7,7 +7,8 @@ class NoteBase(BaseModel):
     text: Optional[str] = None
     folder_id: Optional[int] = None
     is_public: bool = False
-    access: bool = False
+
+
 
 class FolderCreate(BaseModel):
     name: str
