@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Папка: {{ folder.name }} - SecureNotes{% endblock %}
+{% set active_page = 'folders' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ config.url }}/static/css/folder.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="folder-header">
+        <h2>Папка: {{ folder.name }}</h2>
+        <div class="folder-actions">
+            <button id="addNoteBtn" class="btn primary">➕ Добавить заметку</button>
+            <button id="bulkDeleteBtn" class="btn danger" disabled>🗑️ Удалить выбранные</button>
+            <button id="bulkMoveBtn" class="btn secondary" disabled>📁 Переместить</button>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <label class="checkbox-control">
+            <input type="checkbox" id="selectAll">
+            <span>Выбрать все</span>
+        </label>
+    </div>
+
+    <div class="notes-grid-container">
+        <div class="notes-grid" id="notesGrid">
+            {% for note in notes %}
+                <div class="note-card" data-note-id="{{ note.id }}">
+                    <div class="note-checkbox">
+                        <input type="checkbox" class="note-select" value="{{ note.id }}">
+                    </div>
+                    <div class="note-content">
+                        <h3>{{ note.name }}</h3>
+                        <p class="note-date">Обновлено: {{ note.updated_at }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ config.url }}/static/js/folder.js"></script>
+{% endblock %}

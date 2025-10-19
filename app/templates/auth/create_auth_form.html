@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация</title>
+    <link rel="stylesheet" href="{{ config.url }}/static/css/auth.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-tabs">
+            <button class="tab-btn active" data-tab="login">Вход</button>
+            <button class="tab-btn" data-tab="register">Регистрация</button>
+        </div>
+
+        <!-- Форма входа -->
+        <form id="loginForm" class="auth-form active">
+            <h2>Вход в систему</h2>
+            
+            <div class="form-group">
+                <label for="loginUsername">Логин:</label>
+                <input type="text" id="loginUsername" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="loginPassword">Пароль:</label>
+                <input type="password" id="loginPassword" name="password" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Войти</button>
+        </form>
+
+        <!-- Форма регистрации -->
+        <form id="registerForm" class="auth-form">
+            <h2>Регистрация</h2>
+            
+            <div class="form-group">
+                <label for="registerUsername">Логин:</label>
+                <input type="text" id="registerUsername" name="login" required>
+            </div>
+
+            <div class="form-group">
+                <label for="registerPassword">Пароль:</label>
+                <input type="password" id="registerPassword" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Подтвердите пароль:</label>
+                <input type="password" id="confirmPassword" name="confirm_password" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Зарегистрироваться</button>
+        </form>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <script src="{{ config.url }}/static/js/auth.js"></script>
+</body>
+</html>

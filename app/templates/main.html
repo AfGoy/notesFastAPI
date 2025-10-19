@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}SecureNotes - Главная{% endblock %}
+{% set active_page = 'home' %}
+
+{% block content %}
+
+<!-- Модальное окно -->
+<div id="createFolderModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Создать папку</h2>
+    <form id="createFolderForm">
+      <label for="folderName">Название папки:</label>
+      <input type="text" id="folderName" name="name" required>
+
+      <label for="folderColor">Цвет папки:</label>
+      <input type="color" id="folderColor" name="color" value="#3498db">
+
+      <label>
+        <input type="checkbox" id="publicCheckbox" name="public"> Публичная
+      </label>
+
+      <label>
+        <input type="checkbox" id="passwordProtected" name="password_protected"> Защитить паролем
+      </label>
+
+      <div id="passwordField" style="display: none;">
+        <label for="folderPassword">Пароль:</label>
+        <input type="password" id="folderPassword" name="password">
+      </div>
+
+      <button type="submit">Создать</button>
+    </form>
+  </div>
+</div>
+
+
+<section class="content-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Недавние папки</h2>
+            <div class="folder-controls">
+                <button id="createFolderBtn" class="create-folder-btn">+</button>
+                <div class="scroll-controls">
+                    <button class="scroll-btn left-scroll" id="foldersScrollLeft">←</button>
+                    <button class="scroll-btn right-scroll" id="foldersScrollRight">→</button>
+                </div>
+            </div>
+        </div>
+        <div class="horizontal-scroll-container">
+            <div class="horizontal-scroll" id="foldersScroll">
+                {% for folder in folders %}
+                    <a class="folder-card" target="_blank" href="http://127.0.0.1:8000/folder/folder_page/{{folder.id}}" style="background-color: {{ folder.color | safe }}; position: relative;">
+                        {% if folder.password_check %}
+                            <div class="lock-icon">🔒</div>
+                        {% endif %}
+                        <div class="folder-icon">📁</div>
+                        <h3>{{ folder.name }}</h3>
+                        <p>Обновлено: {{ folder.updated_at }}</p>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Недавние заметки</h2>
+            <div class="scroll-controls">
+                <button class="scroll-btn left-scroll" id="notesScrollLeft">←</button>
+                <button class="scroll-btn right-scroll" id="notesScrollRight">→</button>
+            </div>
+        </div>
+        <div class="horizontal-scroll-container">
+            <div class="horizontal-scroll" id="notesScroll">
+                {% for note in notes %}
+                    <div class="note-card">
+                        <h3>{{ note.name }}</h3>
+                        <p>Последнее изменение: {{ note.updated_at }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<script src="{{ config.url }}/static/js/create_folder.js"></script>
+
+{% endblock %}
