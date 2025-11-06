@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SecureNotes{% endblock %}</title>
+    <link rel="stylesheet" href="{{ config.url }}/static/css/main.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a class="link" href="{{ config.url }}">SecureNotes</a>
+            <nav>
+                <ul>
+                    <li><a href="{{ config.url }}" class="{% if active_page == 'home' %}active{% endif %}">Главная</a></li>
+                    <li><a href="{{ config.url }}/folders" class="{% if active_page == 'folders' %}active{% endif %}">Проводник</a></li>
+                </ul>
+            </nav>
+            <div class="profile-menu">
+                <div class="profile-btn" id="profileBtn">
+                    <span class="profile-avatar">👤</span>
+                    <span class="profile-name">{{ username }}</span>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+                <div class="dropdown-content" id="dropdownContent">
+                    <button class="dropdown-item">
+                        <span class="dropdown-icon">👤</span>
+                        <span>Профиль</span>
+                    </button>
+                    <button class="dropdown-item" id="logoutBtn">
+                        <span class="dropdown-icon">🚪</span>
+                        <span>Выход</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <script src="{{ config.url }}/static/js/main.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
