@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ config.url }}/static/css/main.css">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body data-user-id="{{ user_id }}">
     <header>
         <div class="container">
             <a class="link" href="{{ config.url }}">SecureNotes</a>

@@ -1,49 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
     const selectAllCheckbox = document.getElementById('selectAll');
-    const noteCheckboxes = document.querySelectorAll('.note-select');
     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
     const bulkMoveBtn = document.getElementById('bulkMoveBtn');
     const addNoteBtn = document.getElementById('addNoteBtn');
-    const modal = document.getElementById('noteModal');
-    const span = document.querySelector('.close');
-    const form = document.getElementById('noteForm');
+    const noteModal = document.getElementById('noteModal');
+    const moveModal = document.getElementById('moveModal');
+    const closeNoteBtn = document.querySelector('.close');
+    const closeMoveBtn = document.querySelector('.close-move');
+    const confirmMoveBtn = document.getElementById('confirmMoveBtn');
+    const noteForm = document.getElementById('noteForm');
+    const folderListContainer = document.getElementById('folderListContainer');
 
-    // Получаем folder_id из URL (предполагается путь вида /folder/123)
+    console.log("confirmMoveBtn:", confirmMoveBtn);
+
     const urlParts = window.location.pathname.split('/');
     const folderId = parseInt(urlParts[urlParts.length - 1]);
+    const userId = parseInt(document.body.dataset.userId); // ⚠️ добавь data-user-id="..." в <body> в HTML
 
-    if (!folderId || isNaN(folderId)) {
-        console.error('Не удалось определить folder_id из URL');
-    }
+    let cachedFolders = [];
+    let foldersLoaded = false;
 
-    // === Функции ===
     const updateBulkActions = () => {
-        const anyChecked = Array.from(noteCheckboxes).some(cb => cb.checked);
+        const anyChecked = Array.from(document.querySelectorAll('.note-select')).some(cb => cb.checked);
         bulkDeleteBtn.disabled = !anyChecked;
-        bulkMoveBtn.disabled = !anyChecked; 
-    };
-
-    const addNoteToGrid = (note) => {
-        const grid = document.getElementById('notesGrid');
-        const noteCard = document.createElement('div');
-        noteCard.className = 'note-card';
-        noteCard.setAttribute('data-note-id', note.id);
-        // Форматируем дату как в шаблоне (можно улучшить)
-        const formattedDate = new Date(note.updated_at || new Date()).toLocaleString('ru-RU');
-        noteCard.innerHTML = `
-            <div class="note-checkbox">
-                <input type="checkbox" class="note-select" value="${note.id}">
-            </div>
-            <div class="note-content">
-                <h3>${note.name}</h3>
-                <p class="note-date">Обновлено: ${formattedDate}</p>
-            </div>
-        `;
-        grid.appendChild(noteCard);
-
-        // Назначаем обработчик для нового чекбокса
-        const newCheckbox = noteCard.querySelector('.note-select');
-        newCheckbox.addEventListener('change', handleNoteCheckboxChange);
+        bulkMoveBtn.disabled = !anyChecked;
     };
 
     const handleNoteCheckboxChange = () => {
@@ -52,96 +32,162 @@ document.addEventListener('DOMContentLoaded', () => {
         updateBulkActions();
     };
 
-    // === Обработчики ===
     selectAllCheckbox.addEventListener('change', function () {
         document.querySelectorAll('.note-select').forEach(cb => cb.checked = this.checked);
         updateBulkActions();
     });
 
-    noteCheckboxes.forEach(cb => {
-        cb.addEventListener('change', handleNoteCheckboxChange);
-    });
+    document.querySelectorAll('.note-select').forEach(cb => cb.addEventListener('change', handleNoteCheckboxChange));
 
-    bulkDeleteBtn.addEventListener('click', async () => {
-        const selectedIds = Array.from(document.querySelectorAll('.note-select'))
-            .filter(cb => cb.checked)
-            .map(cb => parseInt(cb.value));
+    // === 🔹 Загрузка папок пользователя для модалки ===
+    async function loadFoldersForUser() {
+        if (foldersLoaded) return cachedFolders;
+        if (!userId || isNaN(userId)) {
+            console.warn('Не указан userId — не могу загрузить папки для модалки.');
+            cachedFolders = [];
+            foldersLoaded = true;
+            return cachedFolders;
+        }
 
-        if (selectedIds.length === 0) return;
-
-        if (confirm(`Удалить ${selectedIds.length} заметок?`)) {
-            // TODO: отправить DELETE-запрос на сервер
-            selectedIds.forEach(id => {
-                const card = document.querySelector(`.note-card[data-note-id="${id}"]`);
-                if (card) card.remove();
+        try {
+            const resp = await fetch(`/folder/by_user/${userId}/`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
             });
-            updateBulkActions();
+
+            if (!resp.ok) {
+                console.error('Ошибка HTTP при получении папок:', resp.status);
+                cachedFolders = [];
+            } else {
+                const data = await resp.json();
+                cachedFolders = Array.isArray(data) ? data : [];
+            }
+        } catch (err) {
+            console.error('Ошибка сети при загрузке папок:', err);
+            cachedFolders = [];
         }
-    });
 
-    bulkMoveBtn.addEventListener('click', () => {
-        const selectedIds = Array.from(document.querySelectorAll('.note-select'))
-            .filter(cb => cb.checked)
-            .map(cb => parseInt(cb.value));
+        foldersLoaded = true;
+        return cachedFolders;
+    }
 
-        if (selectedIds.length === 0) return;
+    // === 🔹 Отрисовка списка папок в модалке ===
+    function renderFolderList(folders) {
+        if (!folderListContainer) return;
+        folderListContainer.innerHTML = '';
 
-        const targetFolderId = prompt('Введите ID папки для перемещения:');
-        if (targetFolderId && !isNaN(targetFolderId)) {
-            alert(`Переместить ${selectedIds.length} заметок в папку ${targetFolderId}`);
-            // TODO: отправить запрос на перемещение
-        }
-    });
-
-    addNoteBtn.onclick = () => modal.style.display = 'block';
-    span.onclick = () => modal.style.display = 'none';
-    window.onclick = (e) => {
-        if (e.target === modal) modal.style.display = 'none';
-    };
-
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-
-        const name = document.getElementById('noteName').value.trim();
-        const text = document.getElementById('noteText').value.trim();
-
-        if (!name || !text) {
-            alert('Название и текст не могут быть пустыми');
+        if (folders.length === 0) {
+            folderListContainer.innerHTML = '<p>Нет доступных папок для перемещения.</p>';
             return;
         }
 
+        folders.forEach(f => {
+            if (f.id === folderId) return; // не показываем текущую папку
+            const label = document.createElement('label');
+            label.innerHTML = `
+                <input type="radio" name="targetFolder" value="${f.id}">
+                ${f.name}
+            `;
+            folderListContainer.appendChild(label);
+        });
+    }
+
+    // 🔹 Показ модалки перемещения
+    bulkMoveBtn.addEventListener('click', async () => {
+        const selected = Array.from(document.querySelectorAll('.note-select:checked'));
+        if (selected.length === 0) return;
+
+        const folders = await loadFoldersForUser();
+        renderFolderList(folders);
+        moveModal.classList.add('show');
+    });
+
+    // 🔹 Закрытие модалок
+    window.onclick = (e) => {
+        if (e.target === noteModal) noteModal.classList.remove('show');
+        if (e.target === moveModal) moveModal.classList.remove('show');
+    };
+
+    // 🔹 Подтверждение перемещения
+    confirmMoveBtn.addEventListener('click', async () => {
+        const selectedFolder = document.querySelector('input[name="targetFolder"]:checked');
+        if (!selectedFolder) return alert('Выберите папку.');
+
+        const targetFolderId = parseInt(selectedFolder.value);
+        const selectedIds = Array.from(document.querySelectorAll('.note-select:checked')).map(cb => parseInt(cb.value));
+
+        try {
+            console.log(selectedIds)
+            console.log(targetFolderId)
+            const response = await fetch('/note/mass_move/', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ note_ids: selectedIds, folder_id: targetFolderId })
+            });
+
+            if (response.ok) {
+                selectedIds.forEach(id => {
+                    const card = document.querySelector(`.note-card[data-note-id="${id}"]`);
+                    if (card) card.remove();
+                });
+                moveModal.classList.remove('show');
+                updateBulkActions();
+            } else {
+                alert('Ошибка при перемещении заметок');
+            }
+        } catch (err) {
+            alert('Ошибка сети при перемещении');
+        }
+    });
+
+    // 🔹 Показ модалки создания
+    addNoteBtn.onclick = () => noteModal.classList.add('show');
+
+    // 🔹 Создание заметки
+    noteForm.onsubmit = async (e) => {
+        e.preventDefault();
         const data = {
-            name: name,
-            text: text,
+            name: document.getElementById('noteName').value.trim(),
+            text: document.getElementById('noteText').value.trim(),
             folder_id: folderId,
             is_public: document.getElementById('notePublic').checked
         };
 
         try {
-            // 🔥 ИСПРАВЛЕНО: отправляем на правильный эндпоинт!
-            const res = await fetch('/note/', {  // или '/api/notes', зависит от вашего бэкенда
+            const res = await fetch('/note/', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
 
             if (res.ok) {
                 const note = await res.json();
                 addNoteToGrid(note);
-                modal.style.display = 'none';
-                form.reset();
-                // Сброс кастомного чекбокса (если нужно)
-                document.getElementById('notePublic').checked = false;
+                noteModal.classList.remove('show');
+                noteForm.reset();
             } else {
-                const errorText = await res.text();
-                console.error('Ошибка сервера:', errorText);
-                alert('Ошибка при создании заметки: ' + (res.status === 400 ? 'Неверные данные' : 'Серверная ошибка'));
+                alert('Ошибка при создании заметки.');
             }
-        } catch (err) {
-            console.error('Сетевая ошибка:', err);
-            alert('Ошибка сети. Проверьте подключение.');
+        } catch {
+            alert('Ошибка сети.');
         }
+    };
+
+    const addNoteToGrid = (note) => {
+        const grid = document.getElementById('notesGrid');
+        const noteCard = document.createElement('div');
+        noteCard.className = 'note-card';
+        noteCard.setAttribute('data-note-id', note.id);
+        noteCard.innerHTML = `
+            <div class="note-checkbox">
+                <input type="checkbox" class="note-select" value="${note.id}">
+            </div>
+            <div class="note-content">
+                <h3>${note.name}</h3>
+                <p class="note-date">Обновлено: ${new Date().toLocaleString('ru-RU')}</p>
+            </div>
+        `;
+        grid.appendChild(noteCard);
+        noteCard.querySelector('.note-select').addEventListener('change', handleNoteCheckboxChange);
     };
 });

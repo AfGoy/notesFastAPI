@@ -86,7 +86,7 @@ async def get_folder_by_id(
 
 
 @router.get('/by_user/{user_id}/')
-async def get_folder_by_user_id(
+async def get_folders_by_user_id(
     user_id: int,
     db: Annotated[Session, Depends(get_db)],
 ):
@@ -193,6 +193,7 @@ async def folder_page(
                 "request": request,
                 "config": {"url": Config.URL},
                 "username": user["username"],
+                "user_id": user["user_id"],
                 "folder": folder,
                 "notes": notes
             }
@@ -210,3 +211,4 @@ async def folder_page(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Произошла ошибка на сервере"
         )
+

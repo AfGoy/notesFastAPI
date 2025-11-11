@@ -371,3 +371,85 @@ textarea {
     border-radius: 6px;
     font-family: inherit;
 }
+
+
+/* Контейнер */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Модалки */
+.modal {
+    display: none; /* по умолчанию скрыты */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.show {
+    display: flex; /* показать модалку */
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px 25px;
+    border-radius: 10px;
+    width: 400px;
+    max-width: 90%;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.folder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.folder-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    margin-top: 8px;
+}
+
+.btn.primary {
+    background-color: #2d89ef;
+    color: white;
+}
+
+.btn.secondary {
+    background-color: #555;
+    color: white;
+}
+
+.btn.danger {
+    background-color: #e53935;
+    color: white;
+}

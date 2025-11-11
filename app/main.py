@@ -78,6 +78,7 @@ async def main(
                 "request": request,
                 "config": {"url": Config.URL},
                 "username": user["username"],
+                "user_id": user["user_id"],
                 "notes": notes,
                 "folders": folders
             }

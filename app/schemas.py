@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
     
 
 class NoteBase(BaseModel):
@@ -16,3 +16,8 @@ class FolderCreate(BaseModel):
     is_public: bool = False
     password_check: bool = False
     password: Optional[str] = None
+
+
+class MoveNotesRequest(BaseModel):
+    note_ids: List[int]
+    folder_id: int
